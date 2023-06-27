@@ -1,14 +1,8 @@
-function love.load()
+function love.load() end
 
-end
+function love.update(dt) end
 
-function love.update(dt)
-
-end
-
-function love.draw()
-
-end
+function love.draw() end
 
 --[[
 -- Default LÖVE loop, which is the same as Variable Delta Time loop
@@ -53,7 +47,8 @@ function love.run()
 		if love.timer then love.timer.sleep(0.001) end
 	end
 end
-]]--
+]]
+--
 
 --[[
 -- Fixed Delta Time loop
@@ -91,7 +86,8 @@ function love.run()
 		if love.timer then love.timer.sleep(0.001) end
 	end
 end
-]]--
+]]
+--
 
 --[[
 -- Semi-fixed Timestep loop
@@ -137,7 +133,8 @@ function love.run()
         if love.timer then love.timer.sleep(0.001) end
     end
 end
-]]--
+]]
+--
 
 --[[
 -- Free the Physics loop
@@ -184,4 +181,5 @@ function love.run()
         if love.timer then love.timer.sleep(0.001) end
     end
 end
-]]--
+]]
+--

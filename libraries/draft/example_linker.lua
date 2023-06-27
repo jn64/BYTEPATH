@@ -1,5 +1,5 @@
 -- load draft
-local Draft = require('draft')
+local Draft = require("draft")
 local draft = Draft()
 
 function love.load()
@@ -23,6 +23,6 @@ function love.update(dt)
 end
 
 function love.draw()
-	local v = draft:egg(400, 300, 1500, 1, 1, numSegments, 'line')
+	local v = draft:egg(400, 300, 1500, 1, 1, numSegments, "line")
 	draft:linkWeb(v)
 end

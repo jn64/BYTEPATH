@@ -22,32 +22,33 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-]]--
+]]
+--
 
 local _PACKAGE = (...):match("^(.+)%.[^%.]+")
-local vector  = require(_PACKAGE .. '.vector-light')
+local vector = require(_PACKAGE .. ".vector-light")
 local huge, abs = math.huge, math.abs
 
 local simplex, edge = {}, {}
 
 local function support(shape_a, shape_b, dx, dy)
-	local x,y = shape_a:support(dx,dy)
-	return vector.sub(x,y, shape_b:support(-dx, -dy))
+	local x, y = shape_a:support(dx, dy)
+	return vector.sub(x, y, shape_b:support(-dx, -dy))
 end
 
 -- returns closest edge to the origin
 local function closest_edge(n)
 	edge.dist = huge
 
-	local i = n-1
-	for k = 1,n-1,2 do
-		local ax,ay = simplex[i], simplex[i+1]
-		local bx,by = simplex[k], simplex[k+1]
+	local i = n - 1
+	for k = 1, n - 1, 2 do
+		local ax, ay = simplex[i], simplex[i + 1]
+		local bx, by = simplex[k], simplex[k + 1]
 		i = k
 
-		local ex,ey = vector.perpendicular(bx-ax, by-ay)
-		local nx,ny = vector.normalize(ex,ey)
-		local d = vector.dot(ax,ay, nx,ny)
+		local ex, ey = vector.perpendicular(bx - ax, by - ay)
+		local nx, ny = vector.normalize(ex, ey)
+		local d = vector.dot(ax, ay, nx, ny)
 
 		if d < edge.dist then
 			edge.dist = d
@@ -59,10 +60,10 @@ end
 
 local function EPA(shape_a, shape_b)
 	-- make sure simplex is oriented counter clockwise
-	local cx,cy, bx,by, ax,ay = unpack(simplex, 1, 6)
-	if vector.dot(ax-bx,ay-by, cx-bx,cy-by) < 0 then
-		simplex[1],simplex[2] = ax,ay
-		simplex[5],simplex[6] = cx,cy
+	local cx, cy, bx, by, ax, ay = unpack(simplex, 1, 6)
+	if vector.dot(ax - bx, ay - by, cx - bx, cy - by) < 0 then
+		simplex[1], simplex[2] = ax, ay
+		simplex[5], simplex[6] = cx, cy
 	end
 
 	-- the expanding polytype algorithm
@@ -70,21 +71,21 @@ local function EPA(shape_a, shape_b)
 	local last_diff_dist, n = huge, 6
 	while true do
 		closest_edge(n)
-		local px,py = support(shape_a, shape_b, edge.nx, edge.ny)
-		local d = vector.dot(px,py, edge.nx, edge.ny)
+		local px, py = support(shape_a, shape_b, edge.nx, edge.ny)
+		local d = vector.dot(px, py, edge.nx, edge.ny)
 
 		local diff_dist = d - edge.dist
 		if diff_dist < 1e-6 or (is_either_circle and abs(last_diff_dist - diff_dist) < 1e-10) then
-			return -d*edge.nx, -d*edge.ny
+			return -d * edge.nx, -d * edge.ny
 		end
 		last_diff_dist = diff_dist
 
 		-- simplex = {..., simplex[edge.i-1], px, py, simplex[edge.i]
 		for i = n, edge.i, -1 do
-			simplex[i+2] = simplex[i]
+			simplex[i + 2] = simplex[i]
 		end
-		simplex[edge.i+0] = px
-		simplex[edge.i+1] = py
+		simplex[edge.i + 0] = px
+		simplex[edge.i + 1] = py
 		n = n + 2
 	end
 end
@@ -93,16 +94,16 @@ end
 -- B o------o A   since A is the furthest point on the MD
 --   :      :     in direction of the origin.
 local function do_line()
-	local bx,by, ax,ay = unpack(simplex, 1, 4)
+	local bx, by, ax, ay = unpack(simplex, 1, 4)
 
-	local abx,aby = bx-ax, by-ay
+	local abx, aby = bx - ax, by - ay
 
-	local dx,dy = vector.perpendicular(abx,aby)
+	local dx, dy = vector.perpendicular(abx, aby)
 
-	if vector.dot(dx,dy, -ax,-ay) < 0 then
-		dx,dy = -dx,-dy
+	if vector.dot(dx, dy, -ax, -ay) < 0 then
+		dx, dy = -dx, -dy
 	end
-	return dx,dy
+	return dx, dy
 end
 
 -- B .'
@@ -113,32 +114,32 @@ end
 --  o-'  3
 -- C '.
 local function do_triangle()
-	local cx,cy, bx,by, ax,ay = unpack(simplex, 1, 6)
-	local aox,aoy = -ax,-ay
-	local abx,aby = bx-ax, by-ay
-	local acx,acy = cx-ax, cy-ay
+	local cx, cy, bx, by, ax, ay = unpack(simplex, 1, 6)
+	local aox, aoy = -ax, -ay
+	local abx, aby = bx - ax, by - ay
+	local acx, acy = cx - ax, cy - ay
 
 	-- test region 1
-	local dx,dy = vector.perpendicular(abx,aby)
-	if vector.dot(dx,dy, acx,acy) > 0 then
-		dx,dy = -dx,-dy
+	local dx, dy = vector.perpendicular(abx, aby)
+	if vector.dot(dx, dy, acx, acy) > 0 then
+		dx, dy = -dx, -dy
 	end
-	if vector.dot(dx,dy, aox,aoy) > 0 then
+	if vector.dot(dx, dy, aox, aoy) > 0 then
 		-- simplex = {bx,by, ax,ay}
-		simplex[1], simplex[2] = bx,by
-		simplex[3], simplex[4] = ax,ay
-		return 4, dx,dy
+		simplex[1], simplex[2] = bx, by
+		simplex[3], simplex[4] = ax, ay
+		return 4, dx, dy
 	end
 
 	-- test region 3
-	dx,dy = vector.perpendicular(acx,acy)
-	if vector.dot(dx,dy, abx,aby) > 0 then
-		dx,dy = -dx,-dy
+	dx, dy = vector.perpendicular(acx, acy)
+	if vector.dot(dx, dy, abx, aby) > 0 then
+		dx, dy = -dx, -dy
 	end
-	if vector.dot(dx,dy, aox, aoy) > 0 then
+	if vector.dot(dx, dy, aox, aoy) > 0 then
 		-- simplex = {cx,cy, ax,ay}
-		simplex[3], simplex[4] = ax,ay
-		return 4, dx,dy
+		simplex[3], simplex[4] = ax, ay
+		return 4, dx, dy
 	end
 
 	-- must be in region 4
@@ -146,7 +147,7 @@ local function do_triangle()
 end
 
 local function GJK(shape_a, shape_b)
-	local ax,ay = support(shape_a, shape_b, 1,0)
+	local ax, ay = support(shape_a, shape_b, 1, 0)
 	if ax == 0 and ay == 0 then
 		-- only true if shape_a and shape_b are touching in a vertex, e.g.
 		--  .---                .---.
@@ -161,28 +162,28 @@ local function GJK(shape_a, shape_b)
 	end
 
 	simplex[1], simplex[2] = ax, ay
-	local dx,dy = -ax,-ay
+	local dx, dy = -ax, -ay
 
 	-- first iteration: line case
-	ax,ay = support(shape_a, shape_b, dx,dy)
-	if vector.dot(ax,ay, dx,dy) <= 0 then
+	ax, ay = support(shape_a, shape_b, dx, dy)
+	if vector.dot(ax, ay, dx, dy) <= 0 then
 		return false
 	end
 
-	simplex[3], simplex[4] = ax,ay
+	simplex[3], simplex[4] = ax, ay
 	dx, dy = do_line()
 
 	local n
 
 	-- all other iterations must be the triangle case
 	while true do
-		ax,ay = support(shape_a, shape_b, dx,dy)
+		ax, ay = support(shape_a, shape_b, dx, dy)
 
-		if vector.dot(ax,ay, dx,dy) <= 0 then
+		if vector.dot(ax, ay, dx, dy) <= 0 then
 			return false
 		end
 
-		simplex[5], simplex[6] = ax,ay
+		simplex[5], simplex[6] = ax, ay
 		n, dx, dy = do_triangle()
 
 		if n == 6 then

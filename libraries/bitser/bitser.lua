@@ -173,11 +173,13 @@ end
 
 local function write_table(value, seen)
 	local classkey
-	local classname = (class_name_registry[value.class] -- MiddleClass
+	local classname = (
+		class_name_registry[value.class] -- MiddleClass
 		or class_name_registry[value.__baseclass] -- SECL
 		or class_name_registry[getmetatable(value)] -- hump.class
 		or class_name_registry[value.__class__] -- Slither
-		or class_name_registry[value.__class]) -- Moonscript class
+		or class_name_registry[value.__class]
+	) -- Moonscript class
 	if classname then
 		classkey = classkey_registry[classname]
 		Buffer_write_byte(242)
@@ -192,20 +194,21 @@ local function write_table(value, seen)
 	end
 	local klen = 0
 	for k in pairs(value) do
-		if (type(k) ~= 'number' or floor(k) ~= k or k > len or k < 1) and k ~= classkey then
+		if (type(k) ~= "number" or floor(k) ~= k or k > len or k < 1) and k ~= classkey then
 			klen = klen + 1
 		end
 	end
 	write_number(klen, seen)
 	for k, v in pairs(value) do
-		if (type(k) ~= 'number' or floor(k) ~= k or k > len or k < 1) and k ~= classkey then
+		if (type(k) ~= "number" or floor(k) ~= k or k > len or k < 1) and k ~= classkey then
 			serialize_value(k, seen)
 			serialize_value(v, seen)
 		end
 	end
 end
 
-local types = {number = write_number, string = write_string, table = write_table, boolean = write_boolean, ["nil"] = write_nil}
+local types =
+	{ number = write_number, string = write_string, table = write_table, boolean = write_boolean, ["nil"] = write_nil }
 
 serialize_value = function(value, seen)
 	if seen[value] then
@@ -221,7 +224,7 @@ serialize_value = function(value, seen)
 		return
 	end
 	local t = type(value)
-	if t ~= 'number' and t ~= 'boolean' and t ~= 'nil' then
+	if t ~= "number" and t ~= "boolean" and t ~= "nil" then
 		seen[value] = seen.len
 		seen.len = seen.len + 1
 	end
@@ -238,14 +241,12 @@ serialize_value = function(value, seen)
 		end
 		return
 	end
-	(types[t] or
-		error("cannot serialize type " .. t)
-		)(value, seen)
+	(types[t] or error("cannot serialize type " .. t))(value, seen)
 end
 
 local function serialize(value)
 	Buffer_makeBuffer(4096)
-	local seen = {len = 0}
+	local seen = { len = 0 }
 	serialize_value(value, seen)
 end
 
@@ -359,74 +360,86 @@ local function deserialize_Moonscript(instance, class)
 	return setmetatable(instance, class.__base)
 end
 
-return {dumps = function(value)
-	serialize(value)
-	return buf, buf_pos
-end, dumpLoveFile = function(fname, value)
-	serialize(value)
-	love.filesystem.write(fname, ffi.string(buf, buf_pos))
-end, loadLoveFile = function(fname)
-	local serializedData = love.filesystem.newFileData(fname)
-	Buffer_newDataReader(serializedData:getPointer(), serializedData:getSize())
-	return deserialize_value({})
-end, loadData = function(data, size)
-	Buffer_newDataReader(data, size)
-	return deserialize_value({})
-end, loads = function(str)
-	Buffer_newReader(str)
-	return deserialize_value({})
-end, register = function(name, resource)
-	assert(not resource_registry[name], name .. " already registered")
-	resource_registry[name] = resource
-	resource_name_registry[resource] = name
-	return resource
-end, unregister = function(name)
-	resource_name_registry[resource_registry[name]] = nil
-	resource_registry[name] = nil
-end, registerClass = function(name, class, classkey, deserializer)
-	if not class then
-		class = name
-		name = class.__name__ or class.name or class.__name
-	end
-	if not classkey then
-		if class.__instanceDict then
-			-- assume MiddleClass
-			classkey = 'class'
-		elseif class.__baseclass then
-			-- assume SECL
-			classkey = '__baseclass'
+return {
+	dumps = function(value)
+		serialize(value)
+		return buf, buf_pos
+	end,
+	dumpLoveFile = function(fname, value)
+		serialize(value)
+		love.filesystem.write(fname, ffi.string(buf, buf_pos))
+	end,
+	loadLoveFile = function(fname)
+		local serializedData = love.filesystem.newFileData(fname)
+		Buffer_newDataReader(serializedData:getPointer(), serializedData:getSize())
+		return deserialize_value({})
+	end,
+	loadData = function(data, size)
+		Buffer_newDataReader(data, size)
+		return deserialize_value({})
+	end,
+	loads = function(str)
+		Buffer_newReader(str)
+		return deserialize_value({})
+	end,
+	register = function(name, resource)
+		assert(not resource_registry[name], name .. " already registered")
+		resource_registry[name] = resource
+		resource_name_registry[resource] = name
+		return resource
+	end,
+	unregister = function(name)
+		resource_name_registry[resource_registry[name]] = nil
+		resource_registry[name] = nil
+	end,
+	registerClass = function(name, class, classkey, deserializer)
+		if not class then
+			class = name
+			name = class.__name__ or class.name or class.__name
 		end
-		-- assume hump.class, Slither, Moonscript class or something else that doesn't store the
-		-- class directly on the instance
-	end
-	if not deserializer then
-		if class.__instanceDict then
-			-- assume MiddleClass
-			deserializer = deserialize_MiddleClass
-		elseif class.__baseclass then
-			-- assume SECL
-			deserializer = deserialize_SECL
-		elseif class.__index == class then
-			-- assume hump.class
-			deserializer = deserialize_humpclass
-		elseif class.__name__ then
-			-- assume Slither
-			deserializer = deserialize_Slither
-		elseif class.__base then
-			-- assume Moonscript class
-			deserializer = deserialize_Moonscript
-		else
-			error("no deserializer given for unsupported class library")
+		if not classkey then
+			if class.__instanceDict then
+				-- assume MiddleClass
+				classkey = "class"
+			elseif class.__baseclass then
+				-- assume SECL
+				classkey = "__baseclass"
+			end
+			-- assume hump.class, Slither, Moonscript class or something else that doesn't store the
+			-- class directly on the instance
 		end
-	end
-	class_registry[name] = class
-	classkey_registry[name] = classkey
-	class_deserialize_registry[name] = deserializer
-	class_name_registry[class] = name
-	return class
-end, unregisterClass = function(name)
-	class_name_registry[class_registry[name]] = nil
-	classkey_registry[name] = nil
-	class_deserialize_registry[name] = nil
-	class_registry[name] = nil
-end, reserveBuffer = Buffer_prereserve, clearBuffer = Buffer_clear}
+		if not deserializer then
+			if class.__instanceDict then
+				-- assume MiddleClass
+				deserializer = deserialize_MiddleClass
+			elseif class.__baseclass then
+				-- assume SECL
+				deserializer = deserialize_SECL
+			elseif class.__index == class then
+				-- assume hump.class
+				deserializer = deserialize_humpclass
+			elseif class.__name__ then
+				-- assume Slither
+				deserializer = deserialize_Slither
+			elseif class.__base then
+				-- assume Moonscript class
+				deserializer = deserialize_Moonscript
+			else
+				error("no deserializer given for unsupported class library")
+			end
+		end
+		class_registry[name] = class
+		classkey_registry[name] = classkey
+		class_deserialize_registry[name] = deserializer
+		class_name_registry[class] = name
+		return class
+	end,
+	unregisterClass = function(name)
+		class_name_registry[class_registry[name]] = nil
+		classkey_registry[name] = nil
+		class_deserialize_registry[name] = nil
+		class_registry[name] = nil
+	end,
+	reserveBuffer = Buffer_prereserve,
+	clearBuffer = Buffer_clear,
+}

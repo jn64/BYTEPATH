@@ -30,7 +30,7 @@ function ProjectileTrails:draw()
 	if not self.psystems then
 		self.psystems = {
 			Spin = love.graphics.newParticleSystem(self.prototype, 5000),
-			Flame = love.graphics.newParticleSystem(self.prototype, 5000)
+			Flame = love.graphics.newParticleSystem(self.prototype, 5000),
 		}
 		local r, g, b = unpack(attacks.Spin.color)
 		r, g, b, _ = color255To1(r, g, b)
@@ -47,7 +47,6 @@ function ProjectileTrails:draw()
 		love.graphics.draw(psystem)
 	end
 end
-
 
 function ProjectileTrails:add(parent)
 	if parent.s ~= self.psize then

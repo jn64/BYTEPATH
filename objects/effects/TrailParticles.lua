@@ -21,7 +21,7 @@ function TrailParticles:draw()
 			["Homing"] = love.graphics.newParticleSystem(self.prototype, 5000),
 			["2Split"] = love.graphics.newParticleSystem(self.prototype, 5000),
 			["4Split"] = love.graphics.newParticleSystem(self.prototype, 5000),
-			["Explode"] = love.graphics.newParticleSystem(self.prototype, 5000)
+			["Explode"] = love.graphics.newParticleSystem(self.prototype, 5000),
 		}
 		local r, g, b = unpack(attacks["Homing"].color)
 		self.psystems["Homing"]:setColors(color255To1(r, g, b, 255))

@@ -22,9 +22,11 @@ draft.__index = draft
 	@return  table    metatable
 --]]
 local function new(mode)
-	if mode == nil then mode = 'fill' end
+	if mode == nil then
+		mode = "fill"
+	end
 	return setmetatable({
-		mode = mode
+		mode = mode,
 	}, draft)
 end
 
@@ -32,8 +34,12 @@ end
 -- Getters and setters
 ----------------------------------------------------
 
-function draft:getMode() return self.mode end
-function draft:setMode(mode) self.mode = mode end
+function draft:getMode()
+	return self.mode
+end
+function draft:setMode(mode)
+	self.mode = mode
+end
 
 ----------------------------------------------------
 -- Utilities
@@ -47,7 +53,7 @@ function draft:setMode(mode) self.mode = mode end
 	@return  table    merged vertices {x1, y1, x2, y2, ...}
 --]]
 local function appendVertices(vertices, newVertices)
-	for _,v in ipairs(newVertices) do
+	for _, v in ipairs(newVertices) do
 		table.insert(vertices, v)
 	end
 	return vertices
@@ -65,7 +71,9 @@ end
 	@return  table    points {x1, y1, x2, y2, ...}
 --]]
 function draft:line(points, mode)
-	if mode == nil then mode = self.mode end
+	if mode == nil then
+		mode = self.mode
+	end
 	if mode then
 		love.graphics.line(points)
 	end
@@ -83,7 +91,9 @@ end
 	@return  table    vertices {x1, y2, x2, y2, x3, y3}
 --]]
 function draft:triangleIsosceles(cx, cy, width, height, mode)
-	if mode == nil then mode = self.mode end
+	if mode == nil then
+		mode = self.mode
+	end
 	local widthRadius = width / 2
 	local heightRadius = height / 2
 	local x1 = cx
@@ -95,12 +105,13 @@ function draft:triangleIsosceles(cx, cy, width, height, mode)
 	if mode then
 		love.graphics.polygon(mode, x1, y1, x2, y2, x3, y3)
 	end
-	return {x1, y1, x2, y2, x3, y3}
+	return { x1, y1, x2, y2, x3, y3 }
 end
 --[[
 	local height = math.sqrt(math.pow(width, 2) - math.pow(width / 2, 2))
 	return self:triangleIsosceles(cx, cy, width, height, mode)
-    ]]--
+    ]]
+--
 
 --[[
 	Draws a right triangle
@@ -113,7 +124,9 @@ end
 	@return  table    vertices {x1, y2, x2, y2, x3, y3}
 --]]
 function draft:triangleRight(cx, cy, width, height, mode)
-	if mode == nil then mode = self.mode end
+	if mode == nil then
+		mode = self.mode
+	end
 	local widthRadius = width / 2
 	local heightRadius = height / 2
 	local x1 = cx - widthRadius
@@ -125,7 +138,7 @@ function draft:triangleRight(cx, cy, width, height, mode)
 	if mode then
 		love.graphics.polygon(mode, x1, y1, x2, y2, x3, y3)
 	end
-	return {x1, y1, x2, y2, x3, y3}
+	return { x1, y1, x2, y2, x3, y3 }
 end
 
 --[[
@@ -139,14 +152,16 @@ end
 	@return  table    vertices {x1, y2, x2, y2, x3, y3, x4, y4}
 --]]
 function draft:rectangle(cx, cy, width, height, mode)
-	if mode == nil then mode = self.mode end
+	if mode == nil then
+		mode = self.mode
+	end
 	local widthRadius = width / 2
 	local heightRadius = height / 2
 	local left = cx - widthRadius
 	local right = cx + widthRadius
 	local top = cy - heightRadius
 	local bottom = cy + heightRadius
-	local vertices = {left, top, right, top, right, bottom, left, bottom}
+	local vertices = { left, top, right, top, right, bottom, left, bottom }
 	if mode then
 		love.graphics.rectangle(mode, vertices[1], vertices[2], width, height)
 	end
@@ -161,12 +176,14 @@ end
 	@return  table    vertices {x1, y1, x2, y2, ...}
 --]]
 function draft:polygon(vertices, mode)
-	if mode == nil then mode = self.mode end
+	if mode == nil then
+		mode = self.mode
+	end
 	if mode then
-		if (mode == 'fill' and not love.math.isConvex(vertices)) then
+		if mode == "fill" and not love.math.isConvex(vertices) then
 			local triangles = love.math.triangulate(vertices)
 			for _, v in pairs(triangles) do
-				love.graphics.polygon('fill', v)
+				love.graphics.polygon("fill", v)
 			end
 		else
 			love.graphics.polygon(mode, vertices)
@@ -226,10 +243,14 @@ function draft:trapezoid(cx, cy, width, height, widthTop, widthTopOffset, mode)
 	local heightRadius = height / 2
 	local widthTopRadiusOffsetted = widthTop / 2 + widthTopOffset
 	local vertices = {
-		cx - widthTopRadiusOffsetted, cy - heightRadius,
-		cx + widthTopRadiusOffsetted, cy - heightRadius,
-		cx + widthRadius, cy + heightRadius,
-		cx - widthRadius, cy + heightRadius
+		cx - widthTopRadiusOffsetted,
+		cy - heightRadius,
+		cx + widthTopRadiusOffsetted,
+		cy - heightRadius,
+		cx + widthRadius,
+		cy + heightRadius,
+		cx - widthRadius,
+		cy + heightRadius,
 	}
 	return self:polygon(vertices, mode)
 end
@@ -249,10 +270,14 @@ function draft:rhombus(cx, cy, width, height, mode)
 	local widthRadius = width / 2
 	local heightRadius = height / 2
 	local vertices = {
-		cx - widthRadius, cy,
-		cx, cy - heightRadius,
-		cx + widthRadius, cy,
-		cx, cy + heightRadius
+		cx - widthRadius,
+		cy,
+		cx,
+		cy - heightRadius,
+		cx + widthRadius,
+		cy,
+		cx,
+		cy + heightRadius,
 	}
 	return self:polygon(vertices, mode)
 end
@@ -272,10 +297,14 @@ end
 --]]
 function draft:trapezium(cx, cy, widthLeft, widthRight, height, depth, mode)
 	local vertices = {
-		cx - widthLeft, cy,
-		cx, cy - height,
-		cx + widthRight, cy,
-		cx, cy + depth
+		cx - widthLeft,
+		cy,
+		cx,
+		cy - height,
+		cx + widthRight,
+		cy,
+		cx,
+		cy + depth,
 	}
 	return self:polygon(vertices, mode)
 end
@@ -297,11 +326,16 @@ function draft:gem(cx, cy, widthTop, widthMiddle, height, depth, mode)
 	local widthTopRadius = widthTop / 2
 	local widthMiddleRadius = widthMiddle / 2
 	local vertices = {
-		cx - widthTopRadius, cy - height,
-		cx + widthTopRadius, cy - height,
-		cx + widthMiddleRadius, cy,
-		cx, cy + depth,
-		cx - widthMiddleRadius, cy
+		cx - widthTopRadius,
+		cy - height,
+		cx + widthTopRadius,
+		cy - height,
+		cx + widthMiddleRadius,
+		cy,
+		cx,
+		cy + depth,
+		cx - widthMiddleRadius,
+		cy,
 	}
 	return self:polygon(vertices, mode)
 end
@@ -322,11 +356,16 @@ function draft:diamond(cx, cy, width, mode)
 	local height = depth / 2
 	local topOffset = widthRadius / 3 * 2
 	local vertices = {
-		cx - widthRadius, cy,
-		cx - topOffset, cy - height,
-		cx + topOffset, cy - height,
-		cx + widthRadius, cy,
-		cx, cy + depth
+		cx - widthRadius,
+		cy,
+		cx - topOffset,
+		cy - height,
+		cx + topOffset,
+		cy - height,
+		cx + widthRadius,
+		cy,
+		cx,
+		cy + depth,
 	}
 	return self:polygon(vertices, mode)
 end
@@ -435,11 +474,17 @@ end
 	@uses    self:polygon(), self:line()
 --]]
 function draft:compass(cx, cy, width, arcAngle, startAngle, numSegments, wrap, scale, mode)
-	if mode == nil then mode = self.mode end
+	if mode == nil then
+		mode = self.mode
+	end
 	local radius = width / 2
 	startAngle = startAngle or 0
 	numSegments = numSegments or math.floor(10 * math.sqrt(radius))
-	if wrap == true then wrap = 0 else wrap = -1 end
+	if wrap == true then
+		wrap = 0
+	else
+		wrap = -1
+	end
 	local theta = arcAngle / (numSegments - wrap)
 	local cosine = math.cos(theta)
 	local sine = math.sin(theta)
@@ -448,9 +493,9 @@ function draft:compass(cx, cy, width, arcAngle, startAngle, numSegments, wrap, s
 	local vertices = {}
 	for i = 1, numSegments, 1 do
 		local vx, vy
-		if type(scale) == 'function' then
-			vx, vy = scale(x,y,i,numSegments)
-		elseif type(scale) == 'table' then
+		if type(scale) == "function" then
+			vx, vy = scale(x, y, i, numSegments)
+		elseif type(scale) == "table" then
 			vx = x * scale[1]
 			vy = y * scale[2]
 		else
@@ -463,7 +508,7 @@ function draft:compass(cx, cy, width, arcAngle, startAngle, numSegments, wrap, s
 		x = (cosine * x) - (sine * y)
 		y = (sine * t) + (cosine * y)
 	end
-	if mode then 
+	if mode then
 		if wrap == 0 then
 			self:polygon(vertices, mode)
 		else
@@ -537,7 +582,7 @@ end
 --]]
 function draft:pie(cx, cy, radius, arcAngle, startAngle, numSegments, mode)
 	local vertices = self:compass(cx, cy, radius, arcAngle, startAngle, numSegments, false, nil, false)
-	vertices = appendVertices(vertices, {cx, cy})
+	vertices = appendVertices(vertices, { cx, cy })
 	return self:polygon(vertices, mode)
 end
 
@@ -554,7 +599,7 @@ end
 	@uses    self:compass()
 --]]
 function draft:ellipse(cx, cy, width, height, numSegments, mode)
-	return self:compass(cx, cy, width, 2 * math.pi, 0, numSegments, true, {1, height / width}, mode)
+	return self:compass(cx, cy, width, 2 * math.pi, 0, numSegments, true, { 1, height / width }, mode)
 end
 
 --[[
@@ -572,7 +617,7 @@ end
 	@uses    self:compass()
 --]]
 function draft:ellipticArc(cx, cy, width, height, arcAngle, startAngle, numSegments, mode)
-	return self:compass(cx, cy, width, arcAngle, startAngle, numSegments, false, {1, height / width}, mode)
+	return self:compass(cx, cy, width, arcAngle, startAngle, numSegments, false, { 1, height / width }, mode)
 end
 
 --[[
@@ -590,7 +635,7 @@ end
 	@uses    self:compass()
 --]]
 function draft:ellipticBow(cx, cy, width, height, arcAngle, startAngle, numSegments, mode)
-	return self:compass(cx, cy, width, arcAngle, startAngle, numSegments, true, {1, height / width}, mode)
+	return self:compass(cx, cy, width, arcAngle, startAngle, numSegments, true, { 1, height / width }, mode)
 end
 
 --[[
@@ -608,8 +653,8 @@ end
 	@uses    self:compass(), appendVertices(), self:polygon()
 --]]
 function draft:ellipticPie(cx, cy, width, height, arcAngle, startAngle, numSegments, mode)
-	local vertices = self:compass(cx, cy, width, arcAngle, startAngle, numSegments, false, {1, height / width}, false)
-	vertices = appendVertices(vertices, {cx, cy})
+	local vertices = self:compass(cx, cy, width, arcAngle, startAngle, numSegments, false, { 1, height / width }, false)
+	vertices = appendVertices(vertices, { cx, cy })
 	return self:polygon(vertices, mode)
 end
 
@@ -690,7 +735,7 @@ end
 --]]
 function draft:egg(cx, cy, width, syBottom, syTop, numSegments, mode)
 	syBottom = syBottom or 0.8
-	syTop = syTop or 2 
+	syTop = syTop or 2
 	local scale = function(cx, cy, segmentNum, numSegments)
 		if segmentNum <= numSegments / 2 then
 			cy = cy * syBottom
@@ -721,8 +766,8 @@ end
 --]]
 function draft:linkLadder(v1, v2, mode)
 	local lines = {}
-	for i=1, #v1, 2 do
-		table.insert(lines, self:line({v1[i], v1[i+1], v2[i], v2[i+1]}, mode))
+	for i = 1, #v1, 2 do
+		table.insert(lines, self:line({ v1[i], v1[i + 1], v2[i], v2[i + 1] }, mode))
 	end
 	return lines
 end
@@ -741,9 +786,9 @@ end
 --]]
 function draft:linkTangle(v1, v2, mode)
 	local lines = {}
-	for i=1, #v1, 2 do
-		for j=1, #v2, 2 do
-			table.insert(lines, self:line({v1[i], v1[i+1], v2[j], v2[j+1]}, mode))
+	for i = 1, #v1, 2 do
+		for j = 1, #v2, 2 do
+			table.insert(lines, self:line({ v1[i], v1[i + 1], v2[j], v2[j + 1] }, mode))
 		end
 	end
 	return lines
@@ -762,10 +807,12 @@ end
 function draft:linkWeb(v, mode)
 	local lines = {}
 	local limit = #v - 2
-	for i=1, #v-4, 2 do
-		if i == 3 then limit = limit + 2 end
-		for j=i+4, limit, 2 do
-			table.insert(lines, self:line({v[i], v[i+1], v[j], v[j+1]}, mode))
+	for i = 1, #v - 4, 2 do
+		if i == 3 then
+			limit = limit + 2
+		end
+		for j = i + 4, limit, 2 do
+			table.insert(lines, self:line({ v[i], v[i + 1], v[j], v[j + 1] }, mode))
 		end
 	end
 	return lines
@@ -792,5 +839,8 @@ end
 -- Module
 ----------------------------------------------------
 
-return setmetatable({new = new},
-	{__call = function(_, ...) return new(...) end})
+return setmetatable({ new = new }, {
+	__call = function(_, ...)
+		return new(...)
+	end,
+})

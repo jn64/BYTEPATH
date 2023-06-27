@@ -30,7 +30,7 @@ function ExplodeParticles:draw()
 			self.psystems[psystem] = {
 				recalcPrototype = true,
 				prototype = prototype,
-				psize = 10
+				psize = 10,
 			}
 		end
 	end
@@ -63,7 +63,9 @@ function ExplodeParticles:add(x, y, v, s, color, amt)
 	end
 	if psystem then
 		local psize = (s or random(2, 3)) * 2
-		if psize ~= data.psize then data.recalcPrototype = true end
+		if psize ~= data.psize then
+			data.recalcPrototype = true
+		end
 		data.psize = psize
 		psystem:setPosition(x, y)
 		psystem:setColors(color255To1(color or default_color))

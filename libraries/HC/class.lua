@@ -22,13 +22,16 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-]]--
+]]
+--
 
 local function __NULL__() end
 
 -- class "inheritance" by copying functions
 local function inherit(class, interface, ...)
-	if not interface then return end
+	if not interface then
+		return
+	end
 	assert(type(interface) == "table", "Can only inherit from other classes.")
 
 	-- __index and construct are not overwritten as for them class[name] is defined
@@ -47,24 +50,28 @@ end
 -- class builder
 local function new(args)
 	local super = {}
-	local name = '<unnamed class>'
+	local name = "<unnamed class>"
 	local constructor = args or __NULL__
 	if type(args) == "table" then
 		-- nasty hack to check if args.inherits is a table of classes or a class or nil
-		super = (args.inherits or {}).__is_a and {args.inherits} or args.inherits or {}
+		super = (args.inherits or {}).__is_a and { args.inherits } or args.inherits or {}
 		name = args.name or name
 		constructor = args[1] or __NULL__
 	end
-	assert(type(constructor) == "function", 'constructor has to be nil or a function')
+	assert(type(constructor) == "function", "constructor has to be nil or a function")
 
 	-- build class
 	local class = {}
 	class.__index = class
-	class.__tostring = function() return ("<instance of %s>"):format(tostring(class)) end
+	class.__tostring = function()
+		return ("<instance of %s>"):format(tostring(class))
+	end
 	class.construct = constructor or __NULL__
 	class.inherit = inherit
-	class.__is_a = {[class] = true}
-	class.is_a = function(self, other) return not not self.__is_a[other] end
+	class.__is_a = { [class] = true }
+	class.is_a = function(self, other)
+		return not not self.__is_a[other]
+	end
 
 	-- inherit superclasses (see above)
 	inherit(class, unpack(super))
@@ -77,7 +84,9 @@ local function new(args)
 			self.construct(obj, ...)
 			return obj
 		end,
-		__tostring = function() return name end
+		__tostring = function()
+			return name
+		end,
 	}
 	return setmetatable(class, meta)
 end
@@ -87,7 +96,7 @@ if common_class ~= false and not common then
 	common = {}
 	function common.class(name, prototype, parent)
 		local init = prototype.init or (parent or {}).init
-		return new{name = name, inherits = {prototype, parent}, init}
+		return new({ name = name, inherits = { prototype, parent }, init })
 	end
 	function common.instance(class, ...)
 		return class(...)
@@ -95,5 +104,8 @@ if common_class ~= false and not common then
 end
 
 -- the module
-return setmetatable({new = new, inherit = inherit},
-	{__call = function(_,...) return new(...) end})
+return setmetatable({ new = new, inherit = inherit }, {
+	__call = function(_, ...)
+		return new(...)
+	end,
+})
